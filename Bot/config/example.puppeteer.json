@@ -1,0 +1,34 @@
+{
+  "base_url": "https://www.instagram.com",
+  "database_url": "https://your-database.firebaseio.com",
+  "username": "your-username",
+  "password": "your-password",
+  "hashtags": ["like4like", "likeforlike", "follow4follow", "followforfollow"],
+  "settings": {
+    "headless": false,
+    "interval_hours": 3,
+    "unfollow_days": 2,
+    "like_ratio": 0.8,
+    "new_commenting": false,
+    "new_following": true,
+    "max_per_tag": 10
+  },
+  "selectors": {
+    "button_goto_login": ".izU2O a",
+    "not_now_button": ".HoLwm",
+    "input_username": "input[type=\"text\"]",
+    "input_password": "input[type=\"password\"]",
+    "submit_login": "button[type=\"submit\"]",
+    "post_heart_grey": "span.glyphsSpriteHeart__outline__24__grey_9",
+    "post_username": "div.e1e1d > h2.BrX75 > a",
+    "post_follow_link": ".bY2yH > button",
+    "post_like_button": "span.fr66n > button",
+    "post_follow_button": "span.oW_lN._1OSdk > button",
+    "post_comment_field": "form.X7cDz > textarea",
+    "post_comment_button": "form.X7cDz > button[type=\"submit\"]",
+    "post_close_button": "button.ckWGn",
+    "user_unfollow_button": "span.vBF20 > button._5f5mN",
+    "user_unfollow_confirm_button": "div.mt3GC > button.aOOlW.-Cab_",
+    "hash_tags_base_class": ".KC1QD"
+  }
+}

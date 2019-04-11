@@ -1,0 +1,29 @@
+{
+  "name": "instagram-like-bouncer",
+  "version": "0.0.1",
+  "description": "인스타그램 봇 - 좋아요, 팔로우, 코멘트, 언팔 등",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/agileup/insta-like-bouncer.git"
+  },
+  "dependencies": {
+    "puppeteer": "^1.9.0",
+    "firebase-admin": "^6.1.0"
+  },
+  "keywords": [
+    "InstagramBot",
+    "Puppeteer",
+    "Firebase"
+  ],
+  "author": "agileup",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/agileup/insta-like-bouncer/issues"
+  },
+  "homepage": "https://github.com/agileup/insta-like-bouncer"
+}
