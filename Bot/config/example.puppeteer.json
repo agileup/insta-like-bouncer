@@ -4,6 +4,7 @@
   "username": "your-username",
   "password": "your-password",
   "hashtags": ["like4like", "likeforlike", "follow4follow", "followforfollow"],
+  "comments": ["like4like :)"],
   "settings": {
     "headless": false,
     "interval_hours": 3,
