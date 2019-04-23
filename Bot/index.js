@@ -101,7 +101,7 @@ class InstagramBot {
                             if (!comment_open) continue;
 
                             // 코멘트 내용 다양화
-                            let comment_idx = Math.floor(Math.random()*(comments.length))+1;
+                            let comment_idx = Math.floor(Math.random()*(this.config.comments.length))+1;
                             await page.keyboard.type(this.config.comments[comment_idx-1], { delay: 50 });
 
                             // 코멘트 입력 버튼이 UI상 없어지는 경우가 있어 엔터키 입력으로 대체
