@@ -57,13 +57,13 @@ class InstagramBot {
         await page.waitFor(2000);
 
         let count = 0;
-        for (let row = 1; row < 100; row++) {
+        for (let row = 1; row < 300; row++) {
             for (let col = 1; col < 4; col++) {
                 // 어뷰징 방지를 위해 포스트 1개씩 건너뛰면서 처리
                 if ((row % 2 === 0 && col % 2 !== 0) || (row % 2 !== 0 && col % 2 === 0)) continue;
                 
                 // 태그당 최대 처리수 확인
-                if (++count > this.config.settings.max_per_tag) continue;
+                if (count > this.config.settings.max_per_tag) continue;
 
                 // 대상 포스트 조회
                 let post_check = true;
@@ -75,7 +75,7 @@ class InstagramBot {
 
                 try {
                     // 현재 좋아요 여부 확인
-                    let hasEmptyHeart = await page.$(this.config.selectors.post_heart_grey);
+                    let isRedHeart = await page.$(this.config.selectors.post_heart_red);
 
                     // 현재 포스트 계정 확인
                     let username = await page.evaluate(x => {
@@ -85,15 +85,15 @@ class InstagramBot {
                     if (!username) {
                         continue;
                     }
-                    console.log(`  ${count}번째 포스트: ${username} - ${hasEmptyHeart}`);
+                    console.log(`  ${count}번째 포스트: ${username} - ${isRedHeart}`);
 
-                    // 좋아요 처리(특정 확률로)
-                    if (hasEmptyHeart !== null && Math.random() < this.config.settings.like_ratio) {
+                    // 좋아요 처리
+                    if (isRedHeart == null) {
                         await page.click(this.config.selectors.post_like_button);
-                        await page.waitFor(2000 + Math.floor(Math.random() * 1000));
+                        await page.waitFor(500 + Math.floor(Math.random() * 1000));
 
-                        // 코멘트 작성
-                        if (this.config.settings.new_commenting) {
+                        // 코멘트 작성(특정 확률로)
+                        if (this.config.settings.new_commenting && Math.random() < this.config.settings.like_ratio) {
                             let comment_open = true;
                             await page.click(this.config.selectors.post_comment_field).catch(e => {
                                 comment_open = false;
@@ -103,11 +103,12 @@ class InstagramBot {
                             // 코멘트 내용 다양화
                             let comment_idx = Math.floor(Math.random()*(this.config.comments.length))+1;
                             await page.keyboard.type(this.config.comments[comment_idx-1], { delay: 50 });
+                            await page.waitFor(500 + Math.floor(Math.random() * 1000));
 
                             // 코멘트 입력 버튼이 UI상 없어지는 경우가 있어 엔터키 입력으로 대체
                             await page.keyboard.press(String.fromCharCode(13));
                             // await page.click(this.config.selectors.post_comment_button);
-                            await page.waitFor(2500 + Math.floor(Math.random() * 5000));
+                            await page.waitFor(2000 + Math.floor(Math.random() * 5000));
                         }
                     }
 
@@ -141,6 +142,8 @@ class InstagramBot {
                             });
                         }
                     }
+
+                    count++;
 
                     // 현재 포스트 닫기
                     await page.click(this.config.selectors.post_close_button)

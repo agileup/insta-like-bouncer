@@ -21,6 +21,7 @@
     "input_password": "input[type=\"password\"]",
     "submit_login": "button[type=\"submit\"]",
     "post_heart_grey": "span.glyphsSpriteHeart__outline__24__grey_9",
+    "post_heart_red": "span.glyphsSpriteHeart__filled__24__red_5",
     "post_username": "div.e1e1d > h2.BrX75 > a",
     "post_follow_link": ".bY2yH > button",
     "post_like_button": "span.fr66n > button",
