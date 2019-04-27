@@ -13,7 +13,7 @@
 * 프로젝트 복사: `git clone https://github.com/agileup/insta-like-bouncer.git`
 * config 폴더 내 `example.db_config.json`/`example.puppeteer.json` 파일을 각각 `db_config.json`/`puppeteer.json`으로 이름 변경
 * firebase에서 등록한 real-time database의 credential 정보를 `db_config.json` 파일에 입력
-* `puppeter.json` 파일에 본인 인스타그램 계정 정보를 입력 - [환경 설정](#환경&#32;설정) 참고
+* `puppeter.json` 파일에 본인 인스타그램 계정 정보를 입력 - [환경 설정](#환경-설정) 참고
 * 필요 모듈 설치: `npm install`
 * 봇 실행: `node index.js`
 
