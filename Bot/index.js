@@ -93,7 +93,7 @@ class InstagramBot {
                         await page.waitFor(500 + Math.floor(Math.random() * 1000));
 
                         // 코멘트 작성(특정 확률로)
-                        if (this.config.settings.new_commenting && Math.random() < this.config.settings.like_ratio) {
+                        if (this.config.settings.new_commenting && Math.random() < this.config.settings.comment_ratio) {
                             let comment_open = true;
                             await page.click(this.config.selectors.post_comment_field).catch(e => {
                                 comment_open = false;

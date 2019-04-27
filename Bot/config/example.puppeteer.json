@@ -8,11 +8,11 @@
   "settings": {
     "headless": false,
     "interval_hours": 3,
-    "unfollow_days": 2,
-    "like_ratio": 0.8,
+    "max_per_tag": 10,
     "new_commenting": false,
+    "comment_ratio": 0.8,
     "new_following": true,
-    "max_per_tag": 10
+    "unfollow_days": 2
   },
   "selectors": {
     "button_goto_login": ".izU2O a",
