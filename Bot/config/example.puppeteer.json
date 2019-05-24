@@ -9,13 +9,14 @@
     "headless": false,
     "interval_hours": 3,
     "max_per_tag": 10,
+    "action_ratio": 0.8,
     "new_commenting": false,
-    "comment_ratio": 0.8,
     "new_following": true,
     "unfollow_days": 2
   },
   "selectors": {
     "button_goto_login": ".izU2O a",
+    "button_goto_login_mobile": "button.L3NKy",
     "not_now_button": ".HoLwm",
     "input_username": "input[type=\"text\"]",
     "input_password": "input[type=\"password\"]",

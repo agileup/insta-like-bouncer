@@ -29,9 +29,9 @@
 | comments                | [String] | 자동 댓글 목록                                         |
 | settings.headless       | Boolean  | puppeteer 브라우저 윈도우 표시 여부(false일 경우 표시) |
 | settings.interval_hours | Integer  | 실행 간격(시간)                                        |
-| settings.max_per_tag    | Integer  | 해시태그별 최대 탐색 개수                              |
+| settings.max_per_tag    | Integer  | 해시태그별 최대 탐색 개수                                |
+| settings.action_ratio   | Double   | 댓글/팔로우 처리 확률(0~1)                                 |
 | settings.new_commenting | Boolean  | 댓글 입력 여부                                         |
-| settings.comment_ratio  | Double   | 댓글 입력 확률(0~1)                                    |
 | settings.new_following  | Boolean  | 팔로우 신청 여부                                       |
 | settings.unfollow_days  | Integer  | 팔로우 유지 기간(일), 해당 일수 이후 자동 언팔         |
 | selectors               | Object   | 인스타 탐색용 고유값                                   |

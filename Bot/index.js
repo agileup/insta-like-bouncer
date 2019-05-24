@@ -2,6 +2,7 @@ class InstagramBot {
     constructor() {
         this.firebase_db = require('./db');
         this.config = require('./config/puppeteer.json');
+        this.is_mobile = false;
     }
 
     async initPuppeter() {
@@ -15,9 +16,11 @@ class InstagramBot {
         });
         this.page = await this.browser.newPage();
         this.page.setViewport({ width: 1600, height: 800 });
+        // 모바일 user-agent로 접근해도 commet limit은 동일해서 별로 의미 없음
+        // this.page.setUserAgent('Mozilla/5.0 (iPhone; CPU iPhone OS 9_0_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13A404 Safari/601.1')
     }
 
-    async visitInstagram() {
+    async visitInstagram(id, pw) {
         // 인스타 접속
         await this.page.goto(this.config.base_url, {timeout: 60000});
         await this.page.waitFor(2500);
@@ -28,9 +31,9 @@ class InstagramBot {
 
         // 계정 정보 입력
         await this.page.click(this.config.selectors.input_username);
-        await this.page.keyboard.type(this.config.username, { delay: 100 });
+        await this.page.keyboard.type(id, { delay: 100 });
         await this.page.click(this.config.selectors.input_password);
-        await this.page.keyboard.type(this.config.password, { delay: 100 });
+        await this.page.keyboard.type(pw, { delay: 100 });
 
         // 로그인 요청
         await this.page.click(this.config.selectors.submit_login);
@@ -38,7 +41,9 @@ class InstagramBot {
 
         // 알림 설정 팝업 닫기
         if (!this.config.settings.headless) {
-            await this.page.click(this.config.selectors.not_now_button);
+            await this.page.click(this.config.selectors.not_now_button).catch(e => {
+                console.error('popup error', e);
+            });
         }
     }
 
@@ -46,24 +51,42 @@ class InstagramBot {
         let hashtags = this.config.hashtags;
         for (let tagIndex = 0; tagIndex < hashtags.length; tagIndex++) {
             console.log(`\n  #${hashtags[tagIndex]}`);
+
             // 해시태그 페이지 이동
             await this.page.goto(`${this.config.base_url}/explore/tags/` + hashtags[tagIndex] + '/?hl=en');
+            
             // 각 포스트 좋아요/팔로우 처리
-            await this._doPostLikeAndFollow(this.config.selectors.hash_tags_base_class, this.page);
+            let total = []
+            while (total.length <= this.config.settings.max_per_tag) {
+                await this._doPostLikeAndFollow(total, this.config.selectors.hash_tags_base_class, this.page);
+
+                // 포스트 개수에 맞춰서 추가 스크롤 다운
+                await this.scrollDown(this.page, 1, 3000);
+            }
         }
     }
+    
+    async scrollDown(page, count, delay) {
+        let previousHeight = 0;
+        for(let i = 0; i < count; i++) {
+            previousHeight = await page.evaluate('document.body.scrollHeight');
+            await page.evaluate('window.scrollTo(0, document.body.scrollHeight)');
+            await page.waitForFunction(`document.body.scrollHeight > ${previousHeight}`);
+            await page.waitFor(delay);
+        }
+        await page.waitFor(1000);
+    }
 
-    async _doPostLikeAndFollow (parentClass, page) {
-        await page.waitFor(2000);
+    async _doPostLikeAndFollow (total, parentClass, page) {
+        await page.waitFor(3000);
 
-        let count = 0;
-        for (let row = 1; row < 300; row++) {
+        for (let row = 1; row < 20; row++) {
             for (let col = 1; col < 4; col++) {
                 // 어뷰징 방지를 위해 포스트 1개씩 건너뛰면서 처리
                 if ((row % 2 === 0 && col % 2 !== 0) || (row % 2 !== 0 && col % 2 === 0)) continue;
                 
                 // 태그당 최대 처리수 확인
-                if (count > this.config.settings.max_per_tag) continue;
+                if (total.length > this.config.settings.max_per_tag) continue;
 
                 // 대상 포스트 조회
                 let post_check = true;
@@ -74,26 +97,61 @@ class InstagramBot {
                 await page.waitFor(3000 + Math.floor(Math.random() * 500));
 
                 try {
-                    // 현재 좋아요 여부 확인
-                    let isRedHeart = await page.$(this.config.selectors.post_heart_red);
-
                     // 현재 포스트 계정 확인
                     let username = await page.evaluate(x => {
                         let element = document.querySelector(x);
                         return Promise.resolve(element ? element.innerHTML : '');
                     }, this.config.selectors.post_username);
-                    if (!username) {
+
+                    // 본인의 포스트일 경우 스킵
+                    if (!username || username == this.config.username) {
                         continue;
                     }
-                    console.log(`  ${count}번째 포스트: ${username} - ${isRedHeart}`);
+
+                    // 좋아요 여부 확인
+                    let isRedHeart = await page.$(this.config.selectors.post_heart_red);
+                    
+                    // let trans = username.replace(/\./g, '%2E');
+                    // console.log(`  ${username} - ${trans} - ${trans.replace(/%2E/g, '.')}`);
 
                     // 좋아요 처리
-                    if (isRedHeart == null) {
+                    if (isRedHeart == null && Math.random() < this.config.settings.action_ratio) {
                         await page.click(this.config.selectors.post_like_button);
                         await page.waitFor(500 + Math.floor(Math.random() * 1000));
 
-                        // 코멘트 작성(특정 확률로)
-                        if (this.config.settings.new_commenting && Math.random() < this.config.settings.comment_ratio) {
+                        // 팔로우 처리
+                        if (this.config.settings.new_following) {
+                            // 이전에 언팔한 기록이 있는지 확인
+                            let isArchivedUser = null;
+                            await this.firebase_db.inHistory(username)
+                                .then(data => isArchivedUser = data)
+                                .catch(() => isArchivedUser = false);
+
+                            // 현재 팔로우 여부 확인
+                            let followStatus = await page.evaluate(x => {
+                                let element = document.querySelector(x);
+                                return Promise.resolve(element ? element.innerHTML : '');
+                            }, this.config.selectors.post_follow_link);
+
+                            // 팔로우 처리
+                            if (followStatus === 'Follow' && !isArchivedUser) {
+                                await this.firebase_db.addFollowing(username).then(() => {
+                                    return page.click(this.config.selectors.post_follow_link);
+                                }).then(() => {
+                                    console.log(`    ${username} 팔로우 성공`);
+                                    return page.waitFor(10000 + Math.floor(Math.random() * 5000));
+                                }).catch(e => {
+                                    if (e) {
+                                        console.error(`    ${username} 팔로우 에러 - ${e.message}`);
+                                    } else {
+                                        console.log(`    ${username} 기존 팔로우`);
+                                    }
+                                });
+                            }
+                        }
+
+                        // 코멘트 작성
+                        if (this.config.settings.new_commenting) {
                             let comment_open = true;
                             await page.click(this.config.selectors.post_comment_field).catch(e => {
                                 comment_open = false;
@@ -102,7 +160,7 @@ class InstagramBot {
 
                             // 코멘트 내용 다양화
                             let comment_idx = Math.floor(Math.random()*(this.config.comments.length))+1;
-                            await page.keyboard.type(this.config.comments[comment_idx-1], { delay: 50 });
+                            await page.keyboard.type(this.config.comments[comment_idx-1], { delay: 100 });
                             await page.waitFor(500 + Math.floor(Math.random() * 1000));
 
                             // 코멘트 입력 버튼이 UI상 없어지는 경우가 있어 엔터키 입력으로 대체
@@ -110,40 +168,10 @@ class InstagramBot {
                             // await page.click(this.config.selectors.post_comment_button);
                             await page.waitFor(2000 + Math.floor(Math.random() * 5000));
                         }
+                        
+                        console.log(`  r${row}, ${total.length} - ${username}`);
+                        total.push(username);
                     }
-
-                    if (this.config.settings.new_following) {
-                        // 이전에 언팔한 기록이 있는지 확인
-                        let isArchivedUser = null;
-                        await this.firebase_db.inHistory(username)
-                            .then(data => isArchivedUser = data)
-                            .catch(() => isArchivedUser = false);
-
-                        // 현재 팔로우 여부 확인
-                        let followStatus = await page.evaluate(x => {
-                            let element = document.querySelector(x);
-                            return Promise.resolve(element ? element.innerHTML : '');
-                        }, this.config.selectors.post_follow_link);
-                        // console.log(`    follow status> ${followStatus}`);
-
-                        // 팔로우 처리
-                        if (followStatus === 'Follow' && !isArchivedUser) {
-                            await this.firebase_db.addFollowing(username).then(() => {
-                                return page.click(this.config.selectors.post_follow_link);
-                            }).then(() => {
-                                console.log(`    ${username} 팔로우 성공`);
-                                return page.waitFor(10000 + Math.floor(Math.random() * 5000));
-                            }).catch(e => {
-                                if (e) {
-                                    console.error(`    ${username} 팔로우 에러 - ${e.message}`);
-                                } else {
-                                    console.log(`    ${username} 기존 팔로우`);
-                                }
-                            });
-                        }
-                    }
-
-                    count++;
 
                     // 현재 포스트 닫기
                     await page.click(this.config.selectors.post_close_button)
@@ -154,7 +182,7 @@ class InstagramBot {
                 }
             }
         }
-    };
+    }
 
     async unFollowUsers() {
         let date_range = new Date().getTime() - (this.config.settings.unfollow_days * 86400000);
