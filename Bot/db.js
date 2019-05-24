@@ -1,15 +1,22 @@
 const firebase = require('firebase-admin');
-const db_config = require("./config/db_config");
+const db_config = require('./config/db_config');
+const config = require('./config/puppeteer.json');
 
 firebase.initializeApp({
     credential: firebase.credential.cert(db_config),
-    databaseURL: require('./config/puppeteer.json').database_url,
+    databaseURL: config.database_url,
 });
 let database = firebase.database();
 
-const following = (param = '') => database.ref(`following/${param}`);
+const replaceChar = function(str) {
+    return str.replace(/\./g, '%2E');
+};
 
-const followHistory = (param = '') => database.ref(`follow_history/${param}`);
+const owner = replaceChar(config.username);
+
+const following = (param = '') => database.ref(`${owner}/following/${replaceChar(param)}`);
+
+const followHistory = (param = '') => database.ref(`${owner}/follow_history/${replaceChar(param)}`);
 
 let addFollowing = async username =>{
     const added = new Date().getTime();
