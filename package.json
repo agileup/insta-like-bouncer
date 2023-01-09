@@ -14,7 +14,7 @@
   "dependencies": {
     "commander": "^2.20.0",
     "express": "^4.16.4",
-    "firebase-admin": "^6.1.0",
+    "firebase-admin": "^11.4.1",
     "puppeteer": "^1.9.0"
   },
   "keywords": [
